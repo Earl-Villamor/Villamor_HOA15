@@ -1,0 +1,63 @@
+---
+  - name: Neutron Installation
+    apt:
+      name: neutron-linuxbridge-agent
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Editing Configuration Files v1
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      regexp: "transport_url = rabbit://"
+      line: "transport_url = rabbit://openstack:kimchi31@ubuntu_server"
+
+  - name: Line Verification of Configuration Files
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      line: "auth_strategy = keystone"
+      state: present
+    check_mode: yes
+
+  - name: Editing Configuration Files v2
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      regexp: "www_authenticate_uri = <None>"
+      line: "www_authenticate_uri = http://ubuntu_server:5000"
+      state: present
+
+  - name: Editing Configuration Files v3
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      regexp: "memcached_servers = <None>"
+      line: "memcached_servers = ubuntu_server:11211"
+      state: present
+
+  - name: Editing Configuration Files v4
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      regexp: "auth_type = <None>"
+      line: "auth_type = password"
+      state: present
+
+  - name: Editing Oslo_Concurrency Section
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/neutron/neutron.conf
+      regexp: "lock_path = <None>"
+      line: "lock_path = /var/lib/neutron/tmp"
+      state: present
+
+  - name: Restarting Compute Device
+    service:
+      name: nova-compute
+      state: restarted
+
+  - name: Restarting Linux Agent
+    service:
+      name: neutron-linuxbridge-agent
+      state: restarted

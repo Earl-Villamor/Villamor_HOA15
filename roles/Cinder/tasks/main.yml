@@ -1,0 +1,31 @@
+---
+  - name: Cinder Installation
+    apt:
+      name:
+        - cinder-api
+        - cinder-scheduler
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Editing Configuration Files
+    tags: cinder, ubuntu, edit
+    lineinfile:
+      path: /etc/cinder/cinder.conf
+      regexp: "connection = sqlite:////var/lib/cinder/cinder.sqlite"
+      line: "connection = mysql+pymysql://cinder:kimchi31@ubuntu_server/cinder"
+
+  - name: Restarting Api Service
+    service:
+      name: nova-compute
+      state: restarted
+
+  - name: Restarting Scheduler Service
+    service:
+      name: cinder-scheduler
+      state: restarted
+
+  - name: Restarting Apache Service
+    service:
+      name: apache2
+      state: restarted
+

@@ -1,0 +1,64 @@
+---
+  - name: Horizon Installation
+    tags: horizon, ubuntu
+    apt:
+      name: openstack-dashboard
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Editing Local Settings v1
+    tags: horizon, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      regexp: 'OPENsTACK_HOST = "127.0.0.1"'
+      line: 'OPENSTACK_HOST = "ubuntu_server"'
+
+  - name: Verifying Local Settings
+    tags: horizon, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      line: "'OPENSTACK_HOST = '*'"
+      state: present
+    check_mode: yes
+
+  - name: Editing Local Settings v2
+    tags: horizon, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      regexp: "SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'"
+      line: "SESSION_ENGINE = 'django.contrib.sessions.backends.cache'"
+
+  - name: Editing Local Settings v3
+    tags: horizon, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      regexp: 'OPENSTACK_KEYSTONE_URL = "http://%s/identity/v3" % OPENSTACK_HOST'
+      line: 'OPENSTACK_KEYSTONE_URL = "http://%s:5000/identity/v3" % OPENSTACK_HOST'
+      state: present
+    check_mode: yes
+
+  - name: Adding Local Settings Configuration v2
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      line: "OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True"
+      state: present
+
+  - name: Adding Local Settings Configuration v3
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      line: 'OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"'
+      state: present
+
+  - name: Adding Local Settings Configuration v4
+    tags: neutron, ubuntu, edit
+    lineinfile:
+      path: /etc/openstack-dashboard/local_settings.py
+      line: 'OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"'
+      state: present
+
+  - name: Restarting Service
+    service:
+      name: apache2.service
+      state: restarted
